@@ -3,178 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <title>Supabase képmegosztó</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; }
-    form { margin-bottom: 1.5em; }
-    #gallery img { margin: 0.5em; border: 1px solid #ccc; border-radius: 4px; }
-    .hidden { display: none; }
-  </style>
 </head>
 <body>
   <h1>Supabase képmegosztó teszt</h1>
 
-  <div id="auth-section">
-    <h2>Regisztráció</h2>
-    <form id="signup-form">
-      <input type="email" id="signup-email" placeholder="Email" required>
-      <input type="password" id="signup-password" placeholder="Jelszó" required>
-      <button type="submit">Regisztráció</button>
-    </form>
+  <h2>Regisztráció</h2>
+  <form id="signup-form">
+    <input type="email" id="signup-email" placeholder="Email" required>
+    <input type="password" id="signup-password" placeholder="Jelszó" required>
+    <button type="submit">Regisztráció</button>
+  </form>
 
-    <h2>Bejelentkezés</h2>
-    <form id="login-form">
-      <input type="email" id="login-email" placeholder="Email" required>
-      <input type="password" id="login-password" placeholder="Jelszó" required>
-      <button type="submit">Belépés</button>
-    </form>
-  </div>
+  <h2>Bejelentkezés</h2>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Jelszó" required>
+    <button type="submit">Belépés</button>
+  </form>
 
-  <div id="user-section" class="hidden">
-    <p id="welcome-msg"></p>
-    <button id="logout-btn">Kijelentkezés</button>
-    <h2>Kép feltöltése</h2>
-    <form id="upload-form">
-      <input type="file" id="file-input" accept="image/*" required>
-      <button type="submit">Feltöltés</button>
-    </form>
-    <h2>Feltöltött képek</h2>
-    <div id="gallery"></div>
-  </div>
+  <h2>Kép feltöltése</h2>
+  <form id="upload-form">
+    <input type="file" id="file-input" accept="image/*" required>
+    <button type="submit">Feltöltés</button>
+  </form>
+
+  <h2>Feltöltött képek</h2>
+  <div id="gallery"></div>
 
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
-  <script>
-    // IDE írd be a saját Supabase projekted adatait:
-    const SUPABASE_URL = "https://vyfbtvcptwdwcqicrdew.supabase.co"; 
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5ZmJ0dmNwdHdkd2NxaWNyZGV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNTU4NDYsImV4cCI6MjA3MjczMTg0Nn0.8WjEDy1EzIBqZMfX133EqNAE2tCAnWno4kn9mjAzyhk"; 
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // UI helpers
-    function showUserSection(email) {
-      document.getElementById("auth-section").classList.add("hidden");
-      document.getElementById("user-section").classList.remove("hidden");
-      document.getElementById("welcome-msg").textContent = "Bejelentkezve: " + email;
-    }
-    function showAuthSection() {
-      document.getElementById("auth-section").classList.remove("hidden");
-      document.getElementById("user-section").classList.add("hidden");
-      document.getElementById("welcome-msg").textContent = "";
-      document.getElementById("gallery").innerHTML = "";
-    }
-
-    // --- Regisztráció ---
-    document.getElementById("signup-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("signup-email").value;
-      const password = document.getElementById("signup-password").value;
-
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        alert("Regisztráció hiba: " + error.message);
-      } else {
-        alert("Sikeres regisztráció! Ellenőrizd az emailedet a megerősítéshez.");
-      }
-    });
-
-    // --- Bejelentkezés ---
-    document.getElementById("login-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert("Login hiba: " + error.message);
-      } else {
-        showUserSection(email);
-        loadGallery();
-      }
-    });
-
-    // --- Kijelentkezés ---
-    document.getElementById("logout-btn").addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      showAuthSection();
-    });
-
-    // --- Kép feltöltése ---
-    document.getElementById("upload-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const file = document.getElementById("file-input").files[0];
-      if (!file) return alert("Válassz ki egy képet!");
-
-      const filePath = `uploads/${Date.now()}-${file.name}`;
-
-      const { data, error } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file);
-
-      if (error) {
-        alert("Feltöltési hiba: " + error.message);
-      } else {
-        alert("Sikeres feltöltés!");
-        loadGallery();
-      }
-    });
-
-    // --- Képek betöltése ---
-    async function loadGallery() {
-      const galleryDiv = document.getElementById("gallery");
-      galleryDiv.innerHTML = "Betöltés...";
-
-      // List all files in the "uploads" bucket, root folder
-      const { data, error } = await supabase.storage.from("uploads").list("uploads", {
-        limit: 50,
-        sortBy: { column: "name", order: "desc" },
-      });
-
-      if (error) {
-        galleryDiv.innerHTML = "Hiba: " + error.message;
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        galleryDiv.innerHTML = "Nincs feltöltött kép.";
-        return;
-      }
-
-      galleryDiv.innerHTML = "";
-      for (const file of data) {
-        // Get the public URL for each file
-        const { data: urlData } = supabase.storage.from("uploads").getPublicUrl("uploads/" + file.name);
-        const img = document.createElement("img");
-        img.src = urlData.publicUrl;
-        img.width = 200;
-        img.alt = file.name;
-        img.onerror = function() {
-          this.style.display = "none";
-        };
-        galleryDiv.appendChild(img);
-      }
-    }
-
-    // --- Auth állapot figyelése ---
-    async function checkAuth() {
-      const { data } = await supabase.auth.getUser();
-      if (data && data.user) {
-        showUserSection(data.user.email);
-        loadGallery();
-      } else {
-        showAuthSection();
-      }
-    }
-
-    checkAuth();
-
-    // Frissítsd a galériát, ha a user bejelentkezik/kijelentkezik más módon
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (session && session.user) {
-        showUserSection(session.user.email);
-        loadGallery();
-      } else {
-        showAuthSection();
-      }
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
