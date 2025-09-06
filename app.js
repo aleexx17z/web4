@@ -50,10 +50,14 @@ document.getElementById("upload-form").addEventListener("submit", async (e) => {
   const file = document.getElementById("file-input").files[0];
   if (!file) return alert("Válassz ki egy képet!");
 
-  const filePath = `uploads/${Date.now()}-${file.name}`;
+  // Fix: Remove "uploads/" prefix from filePath, just use filename (folder is handled by bucket)
+  const filePath = `${Date.now()}-${file.name}`;
 
   try {
-    const { data, error } = await supabase.storage.from("uploads").upload(filePath, file);
+    // Fix: Upload directly to root of "uploads" bucket
+    const { data, error } = await supabase.storage.from("uploads").upload(filePath, file, {
+      upsert: false
+    });
     console.log("Upload data:", data, "error:", error);
     if (error) {
       alert("Feltöltési hiba: " + error.message);
@@ -72,7 +76,8 @@ async function loadGallery() {
   galleryDiv.innerHTML = "Betöltés...";
 
   try {
-    const { data, error } = await supabase.storage.from("uploads").list("uploads", {
+    // Fix: List files from root of "uploads" bucket, not "uploads" folder
+    const { data, error } = await supabase.storage.from("uploads").list("", {
       limit: 50,
       sortBy: { column: "created_at", order: "desc" },
     });
@@ -84,7 +89,8 @@ async function loadGallery() {
 
     galleryDiv.innerHTML = "";
     for (const file of data) {
-      const { data: urlData, error: urlError } = supabase.storage.from("uploads").getPublicUrl("uploads/" + file.name);
+      // Fix: Use file.name directly, not "uploads/" + file.name
+      const { data: urlData, error: urlError } = supabase.storage.from("uploads").getPublicUrl(file.name);
       if (urlError) {
         console.error("Public URL error:", urlError);
         continue;
