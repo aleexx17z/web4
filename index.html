@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase képmegosztó</title>
+</head>
+<body>
+  <h1>Supabase képmegosztó teszt</h1>
+
+  <h2>Regisztráció</h2>
+  <form id="signup-form">
+    <input type="email" id="signup-email" placeholder="Email" required>
+    <input type="password" id="signup-password" placeholder="Jelszó" required>
+    <button type="submit">Regisztráció</button>
+  </form>
+
+  <h2>Bejelentkezés</h2>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="Email" required>
+    <input type="password" id="login-password" placeholder="Jelszó" required>
+    <button type="submit">Belépés</button>
+  </form>
+
+  <h2>Kép feltöltése</h2>
+  <form id="upload-form">
+    <input type="file" id="file-input" accept="image/*" required>
+    <button type="submit">Feltöltés</button>
+  </form>
+
+  <h2>Feltöltött képek</h2>
+  <div id="gallery"></div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
